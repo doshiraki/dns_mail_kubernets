@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  FORGE_EMAIL: bndwZmgwMUBnbWFpbC5jb20=
+  FORGE_API_TOKEN: UjBhWTlZMnhKaHBhT3RxYzgzR3ExQUM2
+kind: Secret
+metadata:
+  name: forge-info
+type: Opaque

@@ -1,0 +1,162 @@
+---
+#- name: dns設定
+#  package:
+#    name: postfix
+
+- name: 変数読み込み
+  include_vars: "Ubuntu.yml"
+
+- name: create user
+  ansible.builtin.user:
+    name: "{{item.key}}"
+    shell: /bin/bash
+    password: "{{item.value.password}}"
+  with_dict: "{{users}}"
+
+
+
+
+- name: Generate an OpenSSL private key with a different size (2048 bits)
+  community.crypto.openssl_privatekey:
+    path: /etc/postfix/sasl/{{mail.mydomain}}.key.pem
+    size: 4096
+
+- name: Generate an OpenSSL Certificate Signing Request
+  community.crypto.openssl_csr:
+    path: /etc/postfix/sasl/{{mail.mydomain}}.csr.pem
+    privatekey_path: /etc/postfix/sasl/{{mail.mydomain}}.key.pem
+    C: JP
+    O: person
+    OU: person
+    E: nwpfh@{{mail.mydomain}}
+    CN: "{{mail.mydomain}}"
+    subject_alt_name:
+    - DNS:localhost
+    - IP:127.0.0.1
+    basic_constraints:
+    - CA:TRUE
+
+- name: Generate a Self Signed OpenSSL certificate
+  community.crypto.x509_certificate:
+    path: /etc/postfix/sasl/{{mail.mydomain}}.crt.pem
+    privatekey_path: /etc/postfix/sasl/{{mail.mydomain}}.key.pem
+    csr_path: /etc/postfix/sasl/{{mail.mydomain}}.csr.pem
+    provider: selfsigned
+
+- name: ファイルコピー
+  include_tasks: rcopy.yml
+  with_items:
+  - src: /etc/postfix/sasl/{{mail.mydomain}}.crt.pem
+    dst: /etc/dovecot/private/dovecot.pem
+  - src: /etc/postfix/sasl/{{mail.mydomain}}.key.pem
+    dst: /etc/dovecot/private/dovecot.key
+
+- name: Touch a file, using symbolic modes to set the permissions (equivalent to 0644)
+  ansible.builtin.file:
+    path: /etc/postfix/relay_password
+    state: touch
+    mode: 744
+
+- name: ファイル取得
+  ansible.builtin.fetch:
+    src: /etc/postfix/{{item}}.proto
+    dest: ../tmp/{{item}}
+    flat: true
+  with_items: "{{postfix_ext_files}}"
+
+- name: ファイル配置
+  ansible.builtin.copy:
+    src: ../tmp/{{item}}
+    dest: /etc/postfix/{{item}}
+  with_items: "{{postfix_ext_files}}"
+
+- name: postfixログフォルダ
+  ansible.builtin.file:
+    dest: "{{item}}"
+    state: directory
+  with_items:
+  - /var/log/postfix
+
+
+- name: ファイル取得
+  ansible.builtin.fetch:
+    src: /etc/postfix/{{item}}.proto
+    dest: ../tmp/{{item}}
+    flat: true
+  with_items: "{{postfix_ext_files}}"
+
+- name: ファイル配置
+  ansible.builtin.copy:
+    src: ../tmp/{{item}}
+    dest: /etc/postfix/{{item}}
+  with_items: "{{postfix_ext_files}}"
+
+- name: Update Postfix configuration.
+  include_tasks: param.yml
+  loop: "{{dict(mail, **mail_sys)|dict2items}}"
+  loop_control:
+    loop_var: mailparam
+  vars:
+    file: /etc/postfix/main.cf
+
+- name: Update Devocot configuration.{{file}}
+  include_tasks: param.yml
+  loop:
+  - key: auth_mechanisms
+    value: plain login
+  loop_control:
+    loop_var: mailparam
+  vars:
+    file: /etc/dovecot/conf.d/10-auth.conf
+
+- name: Update Devocot configuration.{{file}}
+  include_tasks: param.yml
+  loop:
+  - key: mail_location
+    value: maildir:~/Maildir
+  loop_control:
+    loop_var: mailparam
+  vars:
+    file: /etc/dovecot/conf.d/10-mail.conf
+    
+
+- name: smtp
+  lineinfile:
+    dest: /etc/postfix/master.cf
+    insertafter: "^smtp      inet  n       -       y       -       -       smtpd"
+    line: |2-
+        -o smtpd_sender_restrictions=reject_unknown_sender_domain
+  notify: restart postfix
+
+- name: submissions
+  lineinfile:
+    dest: /etc/postfix/master.cf
+    regexp: "^submissions     inet  n       -       y       -       -       smtpd"
+    insertbefore: "^#submissions "
+    line: |2-
+      submissions     inet  n       -       y       -       -       smtpd
+        -o syslog_name=postfix/submissions
+        -o smtpd_tls_wrappermode=yes
+        -o smtpd_sasl_auth_enable=yes
+        -o smtpd_tls_auth_only=yes
+  notify: restart postfix
+
+- name: "修正:{{file}}"
+  lineinfile:
+    dest: "{{file}}"
+    regexp: "^  unix_listener /var/spool/postfix/private/auth"
+    insertafter: "^  # Postfix smtp-auth"
+    line: |2-
+        unix_listener /var/spool/postfix/private/auth {
+          mode = 0666
+          user = postfix
+          group = postfix
+        }
+  vars:
+    file: /etc/dovecot/conf.d/10-master.conf
+
+- name: sender_login
+  ansible.builtin.template:
+    dest: /etc/postfix/sender_login
+    src: sender_login.j2
+  notify: restart postfix

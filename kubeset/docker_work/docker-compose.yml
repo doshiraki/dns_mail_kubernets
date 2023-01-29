@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  bind:
+    build:
+      context: bind
+    image: localhost:5000/bind
+  postfix:
+    build:
+      context: postfix
+    image: localhost:5000/postfix
+    volumes:
+      - ./postfix/ansroot:/root/ansroot:rw
+    tty: true

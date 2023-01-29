@@ -1,0 +1,4 @@
+- hosts: karintou.org
+  roles:
+    - dns-server
+

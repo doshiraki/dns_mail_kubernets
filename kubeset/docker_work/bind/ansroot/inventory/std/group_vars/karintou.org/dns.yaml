@@ -1,0 +1,27 @@
+zones:
+  - name: karintou.org
+    ips:
+      this: 162.43.9.72
+    hosts:
+    - name: "@"
+      ip: this
+      has:
+      - name: mail
+        type: mx
+      - name: ns
+        type: ns
+      - name: ns2
+        type: ns
+      - name: |2
+          "v=spf1 mx ~all"
+        type: txt
+    - name: mail
+      ip: this
+      aliases:
+      - ssh
+    - name: ns
+      ip: this
+    - name: ns2
+      ip: this
+    - name: pc002
+      ip: this

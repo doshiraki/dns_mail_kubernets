@@ -1,0 +1,19 @@
+---
+- name: パラメータ設定({{mailparam.key}})
+  lineinfile:
+    dest: "{{file}}"
+    regexp: "^{{ mailparam.key }} ="
+    insertafter: "^#{{ mailparam.key }} ="
+    line: "{{ mailparam.key }} = {{ mailparam.value|replace('@domain@', mail.mydomain) }}"
+  when: mailparam.value != None
+  notify: restart postfix
+
+- name: パラメータコメントアウト({{mailparam.key}})
+  lineinfile:
+    dest: "{{file}}"
+    regexp: "^{{ mailparam.key }} =(.*)"
+    line: |2-
+      #{{ mailparam.key }} =\1
+    backrefs: yes
+  when: mailparam.value == None
+  notify: restart postfix

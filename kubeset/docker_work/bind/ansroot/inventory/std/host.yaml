@@ -1,0 +1,6 @@
+all:
+  children:
+    karintou.org:
+      hosts:
+        dns-server:
+          ansible_host: 127.0.0.1

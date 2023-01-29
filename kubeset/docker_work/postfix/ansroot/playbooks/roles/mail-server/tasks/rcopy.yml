@@ -1,0 +1,11 @@
+---
+- name: ファイル取得
+  ansible.builtin.fetch:
+    src: "{{item.src}}"
+    dest: ../tmp/{{item.dst}}
+    flat: true
+
+- name: ファイル配置
+  ansible.builtin.copy:
+    src: ../tmp/{{item.dst}}
+    dest: "{{item.dst}}"

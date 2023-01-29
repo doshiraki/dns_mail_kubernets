@@ -1,0 +1,6 @@
+all:
+  children:
+    your.domain.name:
+      hosts:
+        mail-server:
+          ansible_host: 127.0.0.1

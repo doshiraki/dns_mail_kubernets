@@ -1,0 +1,10 @@
+# roles/bind/handlers/main.yml
+---
+- name: restart bind
+  shell: ls
+
+- name: restart bind
+  become: true
+  service:
+    name: "{{ bind_service }}"
+    state: reloaded

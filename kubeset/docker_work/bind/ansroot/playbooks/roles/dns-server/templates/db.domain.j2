@@ -1,0 +1,23 @@
+$TTL	3600
+{% for host in zone.hosts %}
+{%   if  host.name == "@" %}
+{{host.name}}	IN	SOA	pc001 root (
+				{{serial.stdout}}      ; Serial
+				3600		; Refresh
+				900		; Retry
+				3600000		; Expire
+				3600 )		; Minimum
+{%   else %}
+{{host.name}}	IN	A	{{zone.ips[host.ip]}}
+{%   endif %}
+{%   for role in host["has"]|d([]) %}
+{%     if  role.type|lower == "mx" %}
+	IN	{{role.type|upper}}	0 {{role.name}}
+{%     else %}
+	IN	{{role.type|upper}}	{{role.name}}
+{%     endif %}
+{%   endfor %}
+{%   for alias in host["aliases"]|d([]) %}
+{{alias}}	IN	CNAME	{{host.name}}
+{%   endfor %}
+{% endfor %}

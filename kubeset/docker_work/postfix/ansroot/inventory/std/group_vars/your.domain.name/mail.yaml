@@ -1,0 +1,41 @@
+users:
+  user1:
+    password: encrypted_password
+
+
+mail:
+  myhostname: mail.your.domain.name
+  mydomain: your.domain.name
+  myorigin: $mydomain
+  inet_interfaces: all
+  mydestination: $myhostname, $mydomain
+  home_mailbox: Maildir/
+  smtpd_banner: $myhostname ESMTP
+  smtpd_use_tls: "yes"
+  smtpd_sasl_auth_enable: "yes"
+  smtpd_sasl_type: dovecot
+  smtpd_tls_auth_only: "yes"
+  smtpd_sasl_path: private/auth
+  broken_sasl_auth_clients: "yes"
+  smtpd_sasl_security_options: noanonymous, noplaintext
+  smtpd_sasl_tls_security_options: noanonymous
+  smtpd_sender_restrictions: reject_sender_login_mismatch 
+  smtpd_recipient_restrictions: permit_mynetworks
+
+  smtp_use_tls: "yes"
+  smtp_sasl_auth_enable: "yes"
+  smtp_sasl_password_maps: hash:/etc/postfix/relay_password
+  smtp_sasl_security_options: noanonymous
+  smtp_sasl_tls_security_options: noanonymous
+  smtp_sasl_mechanism_filter: plain
+  smtp_tls_CApath: /etc/ssl/certs/ca-certificates.crt
+  #start tls
+  smtp_tls_security_level: may
+
+  readme_directory: /usr/share/doc/postfix
+  html_directory: /usr/share/doc/postfix/html
+
+
+
+
+

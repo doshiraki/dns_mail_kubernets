@@ -1,0 +1,24 @@
+# roles/bind/vars/RedHat.yml
+---
+
+mail_service:
+- postfix
+- dovecot
+
+postfix_ext_files:
+  - main.cf
+  - master.cf
+
+mail_sys:
+  smtpd_tls_cert_file: /etc/postfix/sasl/@domain@.crt.pem
+  smtpd_tls_key_file: /etc/postfix/sasl/@domain@.key.pem
+  sendmail_path:
+  newaliases_path:
+  mailq_path:
+  setgid_group:
+  html_directory:
+  manpage_directory:
+  sample_directory:
+  readme_directory:
+  maillog_file: /var/log/postfix/postfix.log
+  smtpd_sender_login_maps: pcre:/etc/postfix/sender_login

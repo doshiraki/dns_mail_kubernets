@@ -1,0 +1,11 @@
+# roles/bind/vars/RedHat.yml
+---
+
+bind_packages:
+  - bind9
+  - bind9-utils
+
+bind_dir: /etc/bind
+bind_owner: root
+bind_group: bind
+bind_service: bind

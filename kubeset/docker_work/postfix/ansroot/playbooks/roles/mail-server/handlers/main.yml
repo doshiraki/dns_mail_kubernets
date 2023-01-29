@@ -1,0 +1,8 @@
+# roles/bind/handlers/main.yml
+---
+- name: restart postfix
+  become: true
+  service:
+    name: "{{item}}"
+    state: reloaded
+  with_items: "{{ mail_service }}"

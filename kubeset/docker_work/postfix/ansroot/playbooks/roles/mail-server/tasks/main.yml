@@ -1,0 +1,4 @@
+---
+- name: dns設定
+  become: true
+  import_tasks: postfix.yml

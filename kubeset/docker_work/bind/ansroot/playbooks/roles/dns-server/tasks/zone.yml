@@ -1,0 +1,53 @@
+---
+- name: Source specific variables
+  include_vars: "{{ item }}"
+  with_items:
+    - "Ubuntu.yml"
+
+# - name: Install BIND
+#   become: true
+#   package:
+#     pkg: "{{ item }}"
+#     state: present
+#   with_items: "{{ bind_packages }}"
+
+- name: Create serial, based on last two digits of year, month, day, and hour
+  command: date +%Y%m%d%H
+  register: serial
+  changed_when: false
+  run_once: true
+  tags: bind
+
+- name: Master | Main BIND config file (master)
+  template:
+    src: named.conf.domain.j2
+    dest: "{{ bind_dir + '/named.conf.' + zone.name}}"
+    owner: "{{ bind_owner }}"
+    group: "{{ bind_group }}"
+    mode: '0640'
+    validate: 'named-checkconf %s'
+  notify: restart bind
+  tags: bind
+
+- name: Ensure we have our own comment added to /etc/services
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ bind_dir + '/named.conf'}}"
+    insertbefore: 'named.conf.local'
+    regex: |2-
+      include "/etc/bind/named.conf.{{zone.name}}";
+    line: |2-
+      include "/etc/bind/named.conf.{{zone.name}}";
+    validate: /usr/bin/named-checkconf %s
+  notify: restart bind
+
+- name: Master | Main BIND config file (master)
+  template:
+    src: db.domain.j2
+    dest: "{{ bind_dir + '/db.' + zone.name}}"
+    owner: "{{ bind_owner }}"
+    group: "{{ bind_group }}"
+    mode: '0640'
+    validate: "named-checkzone -d {{zone.name}} %s"
+  notify: restart bind
+  tags: bind

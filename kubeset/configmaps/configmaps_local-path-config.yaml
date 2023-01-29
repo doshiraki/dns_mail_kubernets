@@ -1,0 +1,19 @@
+apiVersion: v1
+data:
+  config.json: |-
+    {
+      "nodePathMap":[
+      {
+        "node":"k3d-mycluster-server-0",
+        "paths":["/mnt/pv"]
+      },
+      {
+        "node":"k3d-mycluster-agent-0",
+        "paths":["/mnt/pv"]
+      }
+      ]
+    }
+kind: ConfigMap
+metadata:
+  name: local-path-config
+  namespace: kube-system

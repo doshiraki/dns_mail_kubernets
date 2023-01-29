@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dns
+  name: dns
+spec:
+  replicas: 2
+  progressDeadlineSeconds: 3600
+  selector:
+    matchLabels:
+      app: dns
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: dns
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: is_worker
+                    operator: Exists
+      containers:
+      - name: dns
+        image: mycluster-registry:5000/bind
+        tty: true
+        resources:
+          limits:
+            memory: 50Mi
+            cpu: "0.3"
+        ports:
+          - containerPort: 53
+            protocol: UDP
+status: {}

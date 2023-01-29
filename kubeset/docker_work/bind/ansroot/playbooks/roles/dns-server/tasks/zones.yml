@@ -1,0 +1,6 @@
+---
+- name: dns設定
+  include_tasks: zone.yml
+  loop: "{{ zones }}"
+  loop_control:
+    loop_var: zone

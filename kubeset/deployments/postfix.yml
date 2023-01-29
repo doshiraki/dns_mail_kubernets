@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mail
+  name: mail
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 3600
+  selector:
+    matchLabels:
+      app: mail
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: mail
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: is_worker
+                    operator: Exists
+      containers:
+      - name: mail
+        image: mycluster-registry:5000/postfix
+        tty: true
+        resources:
+          limits:
+            memory: 300Mi
+            cpu: "0.3"
+        ports:
+          - containerPort: 465
+            protocol: TCP
+          - containerPort: 25
+            protocol: TCP
+          - containerPort: 993
+            protocol: TCP
+        volumeMounts:
+          - name: pv-mail
+            mountPath: /home/akira
+            subPath: akira
+          - name: pv-mail
+            mountPath: /home/a_k_r-i_a
+            subPath: a_k_r-i_a
+          - name: pv-mail
+            mountPath: /home/nwpfh
+            subPath: nwpfh
+      volumes:
+        - name: pv-mail
+          persistentVolumeClaim:
+            claimName: mail-pv-claim
+status: {}
