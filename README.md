@@ -1,0 +1,1 @@
+# dns_mail_kubernets
