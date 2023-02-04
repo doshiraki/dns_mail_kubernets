@@ -37,6 +37,7 @@ setiptables() {
     iptables -t nat -A MY_POSTROUTING -s ${nodeip} -d ${nodeip} -p ${proto} -m ${proto} --dport ${port} -j MASQUERADE
 }
 
+
 iptables-save > iptables_old.txt
 
 createchain DOCKER MY_DOCKER
